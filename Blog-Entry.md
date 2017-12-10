@@ -25,16 +25,13 @@ Når man laver et databasekald med NoSQL skrives det ofte i det samme sprog som 
 
 Det tillader ondsindede brugere at manipulere med eksisterende data, tillade fuldstændig offentliggørelse af alle data på systemet, ødelægge data eller gøre det utilgængeligt.
 
-## How does MongoDB address injection?
-
 ## Hvordan adresserer MongoDB injection?
 
-MongoDB represents queries as [BSON](https://docs.mongodb.com/manual/reference/glossary/#term-bson) objects, not as a string.
-Most client libraries available for MongoDB would provide a convenient and injection free, process to build these objects.
+MongoDB bruger [BSON] (https://docs.mongodb.com/manual/reference/glossary/#term-bson) objekter til forespørgsler og ikke strings.
+De fleste biblioteker der er til rådighed for MongoDB ville giver mulighed for at bygge disse objekter og dermed undgå injections.
 
-### How is an injection still possible then?
-
-See, some MongoDB operations allow you to run arbitrary JavaScript expressions directly on the server. The following operations are:
+### Hvordan kan det være at en injection stadig er mulig?
+Fordi nogle MongoDB operationer giver dig mulighed for at køre vilkårlige JavaScript-udtryk direkte på serveren. Følgende operationer er:
 
 * $where
 * mapReduce
@@ -43,28 +40,32 @@ See, some MongoDB operations allow you to run arbitrary JavaScript expressions d
 In these cases you must take care to prevent users from submitting malicious JavaScript.
 MongoDB further suggests that if you need to pass user-supplied values, [you may want to escape these values.](https://docs.mongodb.com/manual/faq/fundamentals/#how-does-mongodb-address-sql-or-query-injection)
 
-### Testing for NoSQL injection vulnerabilities in MongoDB
+I disse tilfælde skal du være varsom med at bruge de operationer. Hvis du bruger dem skal gøre alt for at forhindre ondsindede brugere i at sende ondsindet JavaScript.
 
-MongoDB expects BSON objects. It does not prevent that it is possible to query unserialized JSON and JavaScript expressions in alternative query parameters.
-The **$where** operator is the most commonly used API call that allows arbitrary JavaScript input.  
-The $where operator is commonly used as a filter.
+### Test af NoSQL injection sårbarheder i MongoDB
+
+MongoDB forventer BSON objekter. Det forhindrer ikke, at det er muligt at query unserialiseret JSON og JavaScript-udtryk i parametrene.
+Operatøren **$where** er det mest almindelige API-opkald, der tillader vilkårlige JavaScript-udtryk.
+$where operatøren anvendes normalvis som et filter.
 
 ```javascript
 db.myCollection.find( { $where: "this.username == this.name" } );
 ```
-If an attacker were able to manipulate the data passed into the **$where** operator and could include arbitrary JavaScript to be evaluated then the attack could be **the string '\'; return \'\' == \''** and the where clause would be evaluated to **this.name == ''; return '' == ''**, that results in returning all users instead of only those who matches the clause.
+Hvis en ondsindet bruger kunne manipulere dataene, der blev sendt til operatøren **$where** og tilførte JavaScript, der skulle evalueres, kunne angrebet være **string '\'; return \ '\' == \ ''** og **$where** vil blive evalueret til **this.name == ''; returnere '' == ''**, hvilket vil resultere i at alle brugere vil blive returnere i stedet for kun dem der matchede **$where**.
 
-Another one is
+Og en anden en:
 ```javascript
 db.myCollection.find( { $where: "this.someID > this.anotherID" } );
 ```
-In this case if the input string is '0; return true'. Your where clause will be evaluated as someID > 0; return true and all users would be returned.
+I dette tilfælde, hvis inputstrengen er '0; return true " ville ens **$where** blive evalueret som *someID > 0;*, returnere sandt og alle brugere vil blive returneret.
 
 Or you could receive **'0; while(true){}'** as input and suffer a DoS attack.
 
-And another well known:
+Eller en ondsindet bruger kunne give dette **'0; mens (true) {} '** som input og man ville komme ud for et DoS-angreb.
 
-You receive the following request:
+Og en anden velkendt:
+
+Du modtager følgende forespørgsel:
 
 ```javascript
 {
