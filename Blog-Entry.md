@@ -1,38 +1,18 @@
 #Blog entry
-## Abstract
+# Prevent NoSQL injection attacks in MongoDB
 
-### State the problem
-**NoSQL injection attacks potential impacts are greater than traditional SQL injection.**
+Most of us know SQL injections. It is a well-known attack that happens when an attacker injects code into the query that would be executed by the database. Choosing a NoSQL database does not mean that your website is invulnerable to injections. NoSQL injection attacks potential impacts are greater than traditional SQL injection. NoSQL injections enable an attacker to inject code into the query that would be executed by the database. It can result in data loss or corruption. However, NoSQL injection is easy to prevent by taking precaution. Addressing this precaution will make your site invulnerable to one of the most dangerous security risks.
 
-### Say why it is interesting
-**NoSQL injections enable an attacker to inject code into the query that would be executed by the database. It can result in data loss or
-corruption.**
-
-### Say what your solution achieves
-**However, NoSQL injection is easy to prevent by taking precaution.**
-
-### Say what follows from your solution.
-**Addressing this precaution will make your site invulnerable to one of the most dangerous security risks.**  
-
-Choosing a NoSQL database does not mean that your website is invulnerable to injections.
 This blog entry briefly discuss and shows how a NoSQL database can be vulnerable to NoSQL injections and how to prevent them. We will focus on MongoDB as [its the most popular NoSQL database at the moment](https://db-engines.com/en/ranking). Concepts described in this blog entry applies to other NoSQL databases too.
-
-## Emils part (NoSQL injection attacks potential impacts are greater than traditional SQL injection) - ved ikke hvor den skal være? :)
 
 NoSQL databases provide looser restrictions than traditional SQL databases. This is one of the reason why NoSQL databases often offer performance and scaling benefits. But, looser restrictions and less database consistensy will make your database more vulnerable if the wrong people get access to your database. Attacks like database injections are still - to this day - a very real and serious problem even for NoSQL databases.
 
 NoSQL database calls are typically written in the same language as the surrounding sytem using a vareity of different APIs. Each API offers different features and restrictions. Todat there are more than 200 NoSQL databases (http://nosql-database.org/) to choose from also providing APIs for many different languages. Because there is no common language between them (like SQL) it is increasingly more difficult to test for injections. You would have to familiarize yourself with the syntax, data model, and underlaying programming language in order to make good tests. 
 
-## Injections in general
-
-Most of us are befriended with SQL injections. It is a well-known attack and happens when an attacker injects code into the query that would be executed by the database.
-It is possible because a potential unsafe string concatenation when creating a query. NoSQL databases does not use SQL language for queries.
-
 ## How much damage can an injection cause?
 An injection attack is considered number one most critical web application security risk by OWASP.
 (*The OWASP Top 10 is a powerful awareness document for web application security. It represents a broad consensus about the most critical security risks to web applications.*)
 It allow attackers to spoof identity, tamper with existing data, allow the complete disclosure of all data on the system, destroy the data or make it otherwise unavailable.
-
 
 ## How does MongoDB address injection?
 
@@ -52,13 +32,13 @@ MongoDB further suggests that if you need to pass user-supplied values, [you may
 
 ### Testing for NoSQL injection vulnerabilities in MongoDB
 
-As stated earlier MongoDB expects BSON objects. It does not prevent that it is possible to query unserialized JSON and JavaScript expressions in alternative query parameters.
+MongoDB expects BSON objects. It does not prevent that it is possible to query unserialized JSON and JavaScript expressions in alternative query parameters.
 The **$where** operator is the most commonly used API call that allows arbitrary JavaScript input.  
 The $where operator is commonly used as a filter.
 If an attacker were able to manipulate the data passed into the **$where** operator and could include arbitrary JavaScript to be evaluated.
 
 ```javascript
-$where: "this.post === '" + req.body.post + "'"
+db.myCollection.find( { $where: "this.username == this.name" } );
 ```
 The attack could be the string '\'; return \'\' == \'' and the where clause would be evaluated to this.name === ''; return '' == '', that results in returning all users instead of only those who matches the clause.
 
