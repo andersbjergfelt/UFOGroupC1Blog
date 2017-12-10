@@ -86,8 +86,38 @@ In MongoDB, **$gt** selects those documents where the value of the field is grea
 
 ### How to prevent an injection?
 
-NoSQL injections are easy to prevent by taking this precaution:
+NoSQL injections are easy to prevent by taking these precaution:
 
-* Validate inputs to detect malicious values. For NoSQL databases, also validate input types against expected types
+1. Validate inputs to detect malicious values. For NoSQL databases, also validate input types against expected types
 
-* [Disable server side JavaScript completely via –-noscripting.](https://docs.mongodb.com/manual/faq/fundamentals/#how-does-mongodb-address-sql-or-query-injection) The operations, $where, mapReduce and group will become unusable.
+2. [Disable server side JavaScript completely via –-noscripting.](https://docs.mongodb.com/manual/faq/fundamentals/#how-does-mongodb-address-sql-or-query-injection) The operations, $where, mapReduce and group will become unusable.
+
+1. It's important to ensure that user input received and used to build the API call expression do not contains any character that have a special meaning in the target API syntax.
+
+It's also important to not use string concatenation to build API call expression but use the API to create the expression.
+
+Here's a quick way to do it in Java targeting MongoDB
+
+```java
+ArrayList<String> specialCharsList = new ArrayList<String>() {{
+    add("'");
+    add("\"");
+    add("\\");
+    add(";");
+    add("{");
+    add("}");
+    add("$");
+}};
+@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    public Post getPost(@PathVariable("id") String id){
+		    for (String c : specialCharsList) {
+             if (id.contains(c)) {
+                 return error;
+             }
+         }
+        return repository.findOne(id);
+    }
+
+```
+
+
