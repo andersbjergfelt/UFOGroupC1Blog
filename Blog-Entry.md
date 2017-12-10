@@ -1,20 +1,33 @@
 #Blog entry
 # Prevent NoSQL injection attacks in MongoDB
 
-Most of us know SQL injections. It is a well-known attack that happens when an attacker injects code into the query that would be executed by the database. Choosing a NoSQL database does not mean that your website is invulnerable to injections. NoSQL injection attacks potential impacts are greater than traditional SQL injection. NoSQL injections enable an attacker to inject code into the query that would be executed by the database. It can result in data loss or corruption. However, NoSQL injection is easy to prevent by taking precaution. Addressing this precaution will make your site invulnerable to one of the most dangerous security risks.
+### Authors
 
-This blog entry briefly discuss and shows how a NoSQL database can be vulnerable to NoSQL injections and how to prevent them. We will focus on MongoDB as [its the most popular NoSQL database at the moment](https://db-engines.com/en/ranking). Concepts described in this blog entry applies to other NoSQL databases too.
+**Emil Gräs 
+&
+Anders Bjergfelt**
 
-NoSQL databases provide looser restrictions than traditional SQL databases. This is one of the reason why NoSQL databases often offer performance and scaling benefits. But, looser restrictions and less database consistensy will make your database more vulnerable if the wrong people get access to your database. Attacks like database injections are still - to this day - a very real and serious problem even for NoSQL databases.
+NoSQL injection attacks potential impacts are greater than traditional SQL injection.
 
-NoSQL database calls are typically written in the same language as the surrounding sytem using a vareity of different APIs. Each API offers different features and restrictions. Todat there are more than 200 NoSQL databases (http://nosql-database.org/) to choose from also providing APIs for many different languages. Because there is no common language between them (like SQL) it is increasingly more difficult to test for injections. You would have to familiarize yourself with the syntax, data model, and underlaying programming language in order to make good tests. 
+De fleste kender SQL injections. Det er et velkendt angreb der foregår ved, at en ondsindet bruger tilføjer kode ind via et inputfelt, som ender i en database query, der bliver eksekveret.
+Man undgår desværre ikke problemet ved at vælge en NoSQL database. Ens website vil stadig være sårbar for de former for angreb. Et lignede angreb mod en NoSQL database kaldes for en NoSQL injektion og har samme fremgangsmåde og konsekvenser som en SQL injektion. De resulterer oftes i, at data forsvinder eller bliver korrupt. Vælger man dog at tage sine forbehold, er NoSQL injections lette at sikre sig i mod. Det kræver blot, at man adresserer disse forbehold og følger dem. Det vil gøre dit website uskadelig for en af de farligste sikkerhedsrisici.  
 
-## How much damage can an injection cause?
-An injection attack is considered number one most critical web application security risk by OWASP.
-(*The OWASP Top 10 is a powerful awareness document for web application security. It represents a broad consensus about the most critical security risks to web applications.*)
-It allow attackers to spoof identity, tamper with existing data, allow the complete disclosure of all data on the system, destroy the data or make it otherwise unavailable.
+Dette blogindlæg vil vi kort diskutere og vise, hvordan en NoSQL database kan være sårbar over for NoSQL injektioner og hvordan man kan forhindre dem. Der vil blive fokusere på MongoDB som [den mest populære NoSQL database i øjeblikket] (https://db-engines.com/en/ranking). Begreber som bliver beskrevet i dette blogindlæg er også aktuelle for andre NoSQL databaser.
+
+
+NoSQL og SQL databer adskiller sig på mange måder fra hinanden. NoSQL databaser har langt færre restriktioner når der fx skal laves skemaer. De bruger heller ikke relationer eller constraints, hvilke i SQL verden er med til at sikre at data er konsistent. "Manglen" på restriktioner er netop en af grundene til hvorfor NoSQL databaser ofte udkonkurerer de mere traditionelle SQL databaser på performance og skalérbarhed. Men det gør dem også mere sårbare overfor angreb. Database injections er i dag stadigvæk et omfattende og alvorligt problem, og det er til trods for at det  oftest ikke kræver meget arbejde at sikre sig imod dem.
+
+Når man laver et databasekald med NoSQL skrives det ofte i det samme sprog som systemet er lavet i. Laver man fx en java applikation, skriver man typisk sine database queries i java. Oftest findes der et hav af APIer til lige netop dette. Disse APIer varierer meget i forhold til hvordan de er lavet og hvad de indeholder. I dag findes der mere end 200 officielle NoSQL databaser (http://nosql-database.org/), og de fleste kan integreres i mange sprog. Da der findes så mange forskellige løsninger kan det være svært at vide hvor sikkert et API er, og om de overhovedet håndtere injections eller andre potentielle sikkerhedsbrister. Det er altså uhyre svært at teste sin applikation for NoSQL injections. Det kræver et godt kendskab til APIet, typisk på et ret teknisk niveau.
+
+## Hvor meget skade kan en injection forårsage?
+
+[OWASP](https://www.owasp.org/index.php/Main_Page) ser et injektion angreb som det mest kritiske webapplikationssikkerhedsrisiko. 
+
+Det tillader ondsindede brugere at manipulere med eksisterende data, tillade fuldstændig offentliggørelse af alle data på systemet, ødelægge data eller gøre det utilgængeligt.
 
 ## How does MongoDB address injection?
+
+## Hvordan adresserer MongoDB injection?
 
 MongoDB represents queries as [BSON](https://docs.mongodb.com/manual/reference/glossary/#term-bson) objects, not as a string.
 Most client libraries available for MongoDB would provide a convenient and injection free, process to build these objects.
@@ -35,20 +48,19 @@ MongoDB further suggests that if you need to pass user-supplied values, [you may
 MongoDB expects BSON objects. It does not prevent that it is possible to query unserialized JSON and JavaScript expressions in alternative query parameters.
 The **$where** operator is the most commonly used API call that allows arbitrary JavaScript input.  
 The $where operator is commonly used as a filter.
-If an attacker were able to manipulate the data passed into the **$where** operator and could include arbitrary JavaScript to be evaluated.
 
 ```javascript
 db.myCollection.find( { $where: "this.username == this.name" } );
 ```
-The attack could be the string '\'; return \'\' == \'' and the where clause would be evaluated to this.name === ''; return '' == '', that results in returning all users instead of only those who matches the clause.
+If an attacker were able to manipulate the data passed into the **$where** operator and could include arbitrary JavaScript to be evaluated then the attack could be **the string '\'; return \'\' == \''** and the where clause would be evaluated to **this.name == ''; return '' == ''**, that results in returning all users instead of only those who matches the clause.
 
 Another one is
 ```javascript
- $where: "someID > " + req.body.someID
+db.myCollection.find( { $where: "this.someID > this.anotherID" } );
 ```
 In this case if the input string is '0; return true'. Your where clause will be evaluated as someID > 0; return true and all users would be returned.
 
-Or you could receive '0; while(true){}' as input and suffer a DoS attack.
+Or you could receive **'0; while(true){}'** as input and suffer a DoS attack.
 
 And another well known:
 
@@ -60,7 +72,7 @@ You receive the following request:
     "password": {"$ne": "null"}
 }
 ```
-As **$ne** is the not equal operator, this request would return the first user (possibly an admin) without knowing its name or password.
+As **$ne** is the not equal operator, this request would return the first user without knowing its name or password.
 
 ```javascript
 {
@@ -105,5 +117,7 @@ ArrayList<String> specialCharsList = new ArrayList<String>() {{
     }
 
 ```
+The arraylist contains all chars that have a special meaning in target API. It will prevent arbitrary JavaScript to be evaluated.
+
 
 
