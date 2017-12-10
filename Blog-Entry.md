@@ -17,6 +17,12 @@ corruption.**
 Choosing a NoSQL database does not mean that your website is invulnerable to injections.
 This blog entry briefly discuss and shows how a NoSQL database can be vulnerable to NoSQL injections and how to prevent them. We will focus on MongoDB as [its the most popular NoSQL database at the moment](https://db-engines.com/en/ranking). Concepts described in this blog entry applies to other NoSQL databases too.
 
+## Emils part (NoSQL injection attacks potential impacts are greater than traditional SQL injection) - ved ikke hvor den skal være? :)
+
+NoSQL databases provide looser restrictions than traditional SQL databases. This is one of the reason why NoSQL databases often offer performance and scaling benefits. But, looser restrictions and less database consistensy will make your database more vulnerable if the wrong people get access to your database. Attacks like database injections are still - to this day - a very real and serious problem even for NoSQL databases.
+
+NoSQL database calls are typically written in the same language as the surrounding sytem using a vareity of different APIs. Each API offers different features and restrictions. Todat there are more than 200 NoSQL databases (http://nosql-database.org/) to choose from also providing APIs for many different languages. Because there is no common language between them (like SQL) it is increasingly more difficult to test for injections. You would have to familiarize yourself with the syntax, data model, and underlaying programming language in order to make good tests. 
+
 ## Injections in general
 
 Most of us are befriended with SQL injections. It is a well-known attack and happens when an attacker injects code into the query that would be executed by the database.
