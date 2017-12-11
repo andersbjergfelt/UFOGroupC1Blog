@@ -1,6 +1,6 @@
 #Blog entry
 
-# Forhindre NoSQL injection angreb mod MongoDB
+# Hvordan man forhindrer NoSQL injection angreb mod MongoDB
 
 ### Authors
 
@@ -9,7 +9,7 @@
 Anders Bjergfelt**
 
 De fleste kender SQL injections. Det er et velkendt angreb der foregår ved, at en ondsindet bruger tilføjer kode ind via et inputfelt, som ender i en database query, der bliver eksekveret.
-Man undgår desværre ikke problemet ved at vælge en NoSQL database. Ens website vil stadig være sårbar for de former for angreb. Et lignede angreb mod en NoSQL database kaldes for en NoSQL injektion og har samme fremgangsmåde og konsekvenser som en SQL injektion. De resulterer oftes i, at data forsvinder eller bliver korrupt. Vælger man dog at tage sine forbehold, er NoSQL injections lette at sikre sig i mod. Det kræver blot, at man adresserer disse forbehold og følger dem. Det vil gøre dit website uskadelig for en af de farligste sikkerhedsrisici.  
+Man undgår desværre ikke problemet ved at vælge en NoSQL database. Ens website vil stadig være sårbar for de former for angreb. Et lignede angreb mod en NoSQL database kaldes for en NoSQL injektion og har samme fremgangsmåde og konsekvenser som en SQL injektion. De resulterer oftes i, at data forsvinder eller bliver korrupt. Vælger man dog at tage sine forbehold, er NoSQL injections lette at sikre sig imod. Det kræver blot, at man adresserer disse forbehold og følger dem. Det vil gøre dit website uskadelig for en af de farligste sikkerhedsrisici.  
 
 Dette blogindlæg vil vi kort diskutere og vise, hvordan en NoSQL database kan være sårbar over for NoSQL injektioner og hvordan man kan forhindre dem. Der vil blive fokusere på MongoDB som [den mest populære NoSQL database i øjeblikket] (https://db-engines.com/en/ranking). Begreber som bliver beskrevet i dette blogindlæg er også aktuelle for andre NoSQL databaser.
 
@@ -47,7 +47,7 @@ $where operatøren anvendes normalvis som et filter.
 ```javascript
 db.myCollection.find( { $where: "this.username == this.name" } );
 ```
-Hvis en ondsindet bruger kunne manipulere dataene, der blev sendt til operatøren **$where** og tilførte JavaScript, der skulle evalueres, kunne angrebet være **string '\'; return \ '\' == \ ''** og **$where** vil blive evalueret til **this.name == ''; returnere '' == ''**, hvilket vil resultere i at alle brugere vil blive returnere i stedet for kun dem der matchede **$where**.
+Hvis en ondsindet bruger kunne manipulere dataene, der blev sendt til operatøren **$where** og tilførte JavaScript, der skulle evalueres, kunne angrebet være **string '\'; return \ '\' == \ ''** og **$where** vil blive evalueret til **this.name == ''; returnere '' == ''**, hvilket vil resultere i at alle brugere vil blive returneret i stedet for kun dem der matchede **$where**.
 
 Og en anden en:
 ```javascript
@@ -85,14 +85,8 @@ NoSQL-injektioner er lette at forhindrer ved at tage disse forholdsregler:
 
 2. [Deaktivér serverside JavaScript fuldstændigt via --noscripting.] (Https://docs.mongodb.com/manual/faq/fundamentals/#how-does-mongodb-address-sql-or-query-injection) Operationerne, $where, mapReduce og group bliver ubrugelige
 
-1. It's important to ensure that user input received and used to build the API call expression do not contains any character that have a special meaning in the target API syntax.
-
 1. Det er vigtigt at sikre, at inputtet fra brugeren, der modtages i APIet, ikke indeholder et tegn, der har en særlig betydning i f.eks
 MongoDB
-
-It's also important to not use string concatenation to build API call expression but use the API to create the expression.
-
-Here's a quick way to do it in Java targeting MongoDB
 
 Det er også vigtigt ikke at bruge string concatenation til at opbygge API kald, men at bruge det tilgængelige API'en til at skabe udtrykket.
 
@@ -124,8 +118,14 @@ Arraylisten indeholder alle tegn, der har en særlig betydning i MongoDB. Det vi
 ### Opsummering
 
 [Populariteten af NoSQL databaser er stadig høj](https://db-engines.com/en/ranking_trend). NoSQL databaser udkonkurerer ofte de mere traditionelle SQL databaser på performance og skalérbarhed.
-Problemet er bare at mange gode praksisser fra traditionelle SQL-databaser overses. Det medfører, at NoSQL databaser lider under det samme som deres SQL-modpart. Det er vigtigt at tage sine forbehold og derved forhindre et NoSQL angreb. 
+
+Problemet er bare, at mange gode praksisser fra traditionelle SQL-databaser overses. Det medfører, at NoSQL databaser lider under det samme som deres SQL-modpart. Det er vigtigt at tage sine forbehold og derved forhindre et NoSQL angreb. 
 Injections er i dag stadigvæk et omfattende og alvorligt problem, og det er til trods for at det oftest ikke kræver meget arbejde at sikre sig imod dem.
 
 
+Litteratur:
+https://ckarande.gitbooks.io/owasp-nodegoat-tutorial/content/tutorial/a1_-_sql_and_nosql_injection.html
+https://www.owasp.org/index.php/Testing_for_NoSQL_injection
+https://blog.sqreen.io/mongodb-will-not-prevent-nosql-injections-in-your-node-js-app/
+https://software-talk.org/blog/2015/02/mongodb-nosql-injection-security/
 
